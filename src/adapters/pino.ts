@@ -30,7 +30,7 @@ export function wrapPino<T extends PinoLike>(logger: T, options: DetectOptions):
     if (typeof original !== 'function') continue;
 
     wrapped[method] = (...args: unknown[]) => {
-      const redactedArgs = args.map((arg) => detect(arg, options));
+      const redactedArgs = args.map(arg => detect(arg, options));
       return (original as (...a: unknown[]) => unknown).apply(logger, redactedArgs);
     };
   }

@@ -50,7 +50,7 @@ import { wrap } from 'piiguard';
 const logger = winston.createLogger({
   format: winston.format.combine(
     wrap(winston, { adapter: 'winston' }), // must run before json()/etc
-    winston.format.json()
+    winston.format.json(),
   ),
   transports: [new winston.transports.Console()],
 });
@@ -71,15 +71,15 @@ const clean = redact({ email: 'jane@example.com', ssn: '123-45-6789' });
 
 **By content pattern** (regex over string values):
 
-| Pattern | Example | Notes |
-|---|---|---|
-| `email` | `jane@example.com` | |
+| Pattern      | Example               | Notes                                                                    |
+| ------------ | --------------------- | ------------------------------------------------------------------------ |
+| `email`      | `jane@example.com`    |                                                                          |
 | `creditCard` | `4111 1111 1111 1111` | Validated with a Luhn checksum to avoid flagging arbitrary digit strings |
-| `ssn` | `123-45-6789` | US format |
-| `phone` | `(415) 555-0100` | |
-| `jwt` | `eyJhbGciOi...` | Always fully redacted (see below) |
-| `apiKeyLike` | `sk_live_51H8x...` | Always fully redacted |
-| `ipv4` | `192.168.1.1` | |
+| `ssn`        | `123-45-6789`         | US format                                                                |
+| `phone`      | `(415) 555-0100`      |                                                                          |
+| `jwt`        | `eyJhbGciOi...`       | Always fully redacted (see below)                                        |
+| `apiKeyLike` | `sk_live_51H8x...`    | Always fully redacted                                                    |
+| `ipv4`       | `192.168.1.1`         |                                                                          |
 
 **By key name** (checked against object keys, case- and separator-insensitive
 — `apiKey`, `API_KEY`, and `api-key` all match): `password`, `secret`,
@@ -105,12 +105,12 @@ wrap(pino(), { adapter: 'pino', maskStrategy: 'full' });
 
 ```typescript
 interface PiiGuardOptions {
-  adapter: 'pino' | 'winston';       // required — no auto-detection
+  adapter: 'pino' | 'winston'; // required — no auto-detection
   maskStrategy?: 'full' | 'partial'; // default: 'partial'
   extraPatterns?: Record<string, RegExp>;
-  disablePatterns?: PatternName[];   // e.g. ['ipv4'] if IPs are expected/fine
-  extraSensitiveKeys?: string[];     // add your own always-redact key names
-  maxDepth?: number;                 // default: 6
+  disablePatterns?: PatternName[]; // e.g. ['ipv4'] if IPs are expected/fine
+  extraSensitiveKeys?: string[]; // add your own always-redact key names
+  maxDepth?: number; // default: 6
 }
 ```
 
@@ -118,10 +118,10 @@ interface PiiGuardOptions {
 
 - **Pino `.child()`**: Pino only accepts `hooks.logMethod` at construction
   time, so `piiguard` wraps the log methods (`info`, `error`, ...) on the
-  instance you pass in instead. If you call `.child()` on the *wrapped*
+  instance you pass in instead. If you call `.child()` on the _wrapped_
   logger, the child gets Pino's real methods back — call `wrap()` again on
   any child logger you create.
-- **Winston format order**: the piiguard format must come *before*
+- **Winston format order**: the piiguard format must come _before_
   `winston.format.json()` (or any other serializing format) in
   `format.combine(...)`, since it needs to see the real object shape, not
   an already-stringified line.

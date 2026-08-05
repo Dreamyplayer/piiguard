@@ -1,12 +1,12 @@
 import { wrapPino } from './adapters/pino.js';
 import { piiguardWinstonFormat } from './adapters/winston.js';
 import { detect } from './core/detect.js';
-import { DEFAULT_OPTIONS } from './types.js';
 import type { DetectOptions, PiiGuardOptions } from './types.js';
+import { DEFAULT_OPTIONS } from './types.js';
 
-export type { PiiGuardOptions, MaskStrategy, PatternName, DetectOptions } from './types.js';
-export { PATTERNS, SENSITIVE_KEY_NAMES } from './patterns.js';
 export { detect } from './core/detect.js';
+export { PATTERNS, SENSITIVE_KEY_NAMES } from './patterns.js';
+export type { DetectOptions, MaskStrategy, PatternName, PiiGuardOptions } from './types.js';
 
 function normalizeOptions(options: PiiGuardOptions): DetectOptions {
   return {
@@ -56,7 +56,7 @@ export function wrap<T>(loggerOrWinston: T, options: PiiGuardOptions): T {
   }
 
   throw new Error(
-    `piiguard: unknown adapter "${String((options as PiiGuardOptions).adapter)}". Expected "pino" or "winston".`
+    `piiguard: unknown adapter "${String((options as PiiGuardOptions).adapter)}". Expected "pino" or "winston".`,
   );
 }
 

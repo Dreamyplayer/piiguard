@@ -1,6 +1,6 @@
 import { PATTERNS, PII_KEY_NAMES, SECRET_KEY_NAMES, SECRET_PATTERNS } from '../patterns.js';
-import { FULL_REDACTION, luhnCheck, maskByPattern } from './mask.js';
 import type { DetectOptions, PatternName } from '../types.js';
+import { FULL_REDACTION, luhnCheck, maskByPattern } from './mask.js';
 
 function normalizeKey(key: string): string {
   return key.toLowerCase().replace(/[_-]/g, '');
@@ -9,8 +9,7 @@ function normalizeKey(key: string): string {
 function isSecretKey(key: string, extraKeys: readonly string[]): boolean {
   const normalized = normalizeKey(key);
   return (
-    SECRET_KEY_NAMES.some((k) => normalizeKey(k) === normalized) ||
-    extraKeys.some((k) => normalizeKey(k) === normalized)
+    SECRET_KEY_NAMES.some(k => normalizeKey(k) === normalized) || extraKeys.some(k => normalizeKey(k) === normalized)
   );
 }
 
@@ -26,12 +25,7 @@ function isSensitiveKey(key: string, extraKeys: readonly string[]): boolean {
  * as sensitive. Secret keys are always fully redacted; PII-named keys
  * (ssn, creditCard, ...) go through the same pattern-aware masking as
  * content matches, so `maskStrategy: 'partial'` is honored consistently. */
-function redactSensitiveValue(
-  value: unknown,
-  key: string,
-  options: DetectOptions,
-  depth: number
-): unknown {
+function redactSensitiveValue(value: unknown, key: string, options: DetectOptions, depth: number): unknown {
   if (typeof value !== 'string' && typeof value !== 'number') {
     return detect(value, options, depth + 1); // nested object under a sensitive key name - walk it
   }
@@ -57,13 +51,11 @@ function redactSensitiveValue(
  * message like "user jane@x.com failed login"), leaving the rest intact. */
 function redactString(value: string, opts: DetectOptions): string {
   let result = value;
-  const activePatterns = (Object.keys(PATTERNS) as PatternName[]).filter(
-    (name) => !opts.disablePatterns.includes(name)
-  );
+  const activePatterns = (Object.keys(PATTERNS) as PatternName[]).filter(name => !opts.disablePatterns.includes(name));
 
   for (const name of activePatterns) {
     const regex = PATTERNS[name];
-    result = result.replace(regex, (match) => {
+    result = result.replace(regex, match => {
       if (name === 'creditCard' && !luhnCheck(match)) {
         return match; // not a valid card number, leave alone
       }
@@ -94,7 +86,7 @@ export function detect<T>(input: T, options: DetectOptions, depth = 0): T {
   }
 
   if (Array.isArray(input)) {
-    return input.map((item) => detect(item, options, depth + 1)) as unknown as T;
+    return input.map(item => detect(item, options, depth + 1)) as unknown as T;
   }
 
   if (input instanceof Date || input instanceof RegExp) {
@@ -108,12 +100,7 @@ export function detect<T>(input: T, options: DetectOptions, depth = 0): T {
   // the generic object branch silently turns them into `{}`, losing the
   // data entirely. None of these are places PII patterns meaningfully
   // apply, so pass them through unchanged rather than corrupting them.
-  if (
-    input instanceof Map ||
-    input instanceof Set ||
-    input instanceof ArrayBuffer ||
-    ArrayBuffer.isView(input)
-  ) {
+  if (input instanceof Map || input instanceof Set || input instanceof ArrayBuffer || ArrayBuffer.isView(input)) {
     return input;
   }
 
@@ -131,10 +118,7 @@ export function detect<T>(input: T, options: DetectOptions, depth = 0): T {
     if (input.stack) redactedError.stack = redactString(input.stack, options);
 
     for (const [key, value] of Object.entries(input)) {
-      (redactedError as unknown as Record<string, unknown>)[key] = isSensitiveKey(
-        key,
-        options.extraSensitiveKeys
-      )
+      (redactedError as unknown as Record<string, unknown>)[key] = isSensitiveKey(key, options.extraSensitiveKeys)
         ? redactSensitiveValue(value, key, options, depth)
         : detect(value, options, depth + 1);
     }

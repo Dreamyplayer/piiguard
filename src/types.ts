@@ -1,12 +1,5 @@
 /** Names of the built-in pattern detectors. Used to disable individual ones. */
-export type PatternName =
-  | 'email'
-  | 'creditCard'
-  | 'ssn'
-  | 'phone'
-  | 'jwt'
-  | 'apiKeyLike'
-  | 'ipv4';
+export type PatternName = 'email' | 'creditCard' | 'ssn' | 'phone' | 'jwt' | 'apiKeyLike' | 'ipv4';
 
 /**
  * How a detected value gets replaced in the output.

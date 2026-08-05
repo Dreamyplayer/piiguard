@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { redact } from '../src/index.js';
 
 describe('email redaction', () => {
@@ -63,8 +63,7 @@ describe('key-name based secret redaction', () => {
 
 describe('secret patterns (jwt, apiKeyLike)', () => {
   it('always fully redacts JWTs even with maskStrategy "partial"', () => {
-    const jwt =
-      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U';
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U';
     const result = redact({ token: `Bearer ${jwt}` });
     expect(result.token).not.toContain(jwt);
   });
