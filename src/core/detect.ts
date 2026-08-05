@@ -101,6 +101,47 @@ export function detect<T>(input: T, options: DetectOptions, depth = 0): T {
     return input;
   }
 
+  // Binary/collection types: don't walk these as plain objects.
+  // Object.entries() on a Buffer/TypedArray iterates every byte as an
+  // enumerable numeric key, exploding a binary payload into a huge
+  // index-keyed object. Map/Set have no enumerable own keys at all, so
+  // the generic object branch silently turns them into `{}`, losing the
+  // data entirely. None of these are places PII patterns meaningfully
+  // apply, so pass them through unchanged rather than corrupting them.
+  if (
+    input instanceof Map ||
+    input instanceof Set ||
+    input instanceof ArrayBuffer ||
+    ArrayBuffer.isView(input)
+  ) {
+    return input;
+  }
+
+  // Error objects: `message` and `stack` are non-enumerable own
+  // properties on a plain `new Error(...)`, so Object.entries() below
+  // would silently skip them, letting PII embedded in an error message
+  // (e.g. "login failed for jane@example.com") pass through unredacted
+  // while also losing the error's identity for downstream serializers.
+  // Redact message/stack explicitly and return a real Error instance
+  // (not a plain object) so `instanceof Error` still holds for anything
+  // downstream (e.g. Winston's own `format.errors()`).
+  if (input instanceof Error) {
+    const redactedError = new Error(redactString(input.message, options));
+    redactedError.name = input.name;
+    if (input.stack) redactedError.stack = redactString(input.stack, options);
+
+    for (const [key, value] of Object.entries(input)) {
+      (redactedError as unknown as Record<string, unknown>)[key] = isSensitiveKey(
+        key,
+        options.extraSensitiveKeys
+      )
+        ? redactSensitiveValue(value, key, options, depth)
+        : detect(value, options, depth + 1);
+    }
+
+    return redactedError as unknown as T;
+  }
+
   if (input && typeof input === 'object') {
     const out: Record<string | symbol, unknown> = {};
 

@@ -12,7 +12,7 @@ export const PATTERNS: Record<PatternName, RegExp> = {
   ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
   phone: /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g,
   jwt: /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
-  apiKeyLike: /\b(?:sk|pk|api|key|token)[-_][A-Za-z0-9]{16,}\b/gi,
+  apiKeyLike: /\b(?:sk|pk|api|access|refresh|secret|token|key)(?:[-_][a-zA-Z]+)*[-_][A-Za-z0-9]{16,}\b/gi,
   ipv4: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
 };
 
@@ -20,10 +20,7 @@ export const PATTERNS: Record<PatternName, RegExp> = {
  * Patterns whose matches are always fully redacted (never partially masked)
  * because the match itself is a live credential, not identity data.
  */
-export const SECRET_PATTERNS: ReadonlySet<PatternName> = new Set([
-  'jwt',
-  'apiKeyLike',
-]);
+export const SECRET_PATTERNS: ReadonlySet<PatternName> = new Set(['jwt', 'apiKeyLike']);
 
 /**
  * Object key names (normalized: lowercased, separators stripped) that mark
@@ -70,7 +67,4 @@ export const PII_KEY_NAMES: Record<string, PatternName> = {
 };
 
 /** Combined list, used only for documentation/back-compat exports. */
-export const SENSITIVE_KEY_NAMES: readonly string[] = [
-  ...SECRET_KEY_NAMES,
-  ...Object.keys(PII_KEY_NAMES),
-];
+export const SENSITIVE_KEY_NAMES: readonly string[] = [...SECRET_KEY_NAMES, ...Object.keys(PII_KEY_NAMES)];

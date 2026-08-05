@@ -101,3 +101,73 @@ describe('disablePatterns', () => {
     expect(result.ip).toBe('192.168.1.1');
   });
 });
+
+describe('Error objects', () => {
+  it('redacts PII embedded in the error message', () => {
+    const err = new Error('login failed for jane@example.com');
+    const result = redact({ err });
+    expect(result.err).toBeInstanceOf(Error);
+    expect(result.err.message).not.toContain('jane@example.com');
+    expect(result.err.message).toContain('j***@e***.com');
+  });
+
+  it('redacts PII embedded in the stack trace', () => {
+    const err = new Error('token sk_live_abcdef1234567890 rejected');
+    const result = redact({ err });
+    expect(result.err.stack).not.toContain('sk_live_abcdef1234567890');
+  });
+
+  it('preserves the error name and custom enumerable properties', () => {
+    class ApiError extends Error {
+      statusCode: number;
+      constructor(message: string, statusCode: number) {
+        super(message);
+        this.name = 'ApiError';
+        this.statusCode = statusCode;
+      }
+    }
+    const err = new ApiError('not found', 404);
+    const result = redact({ err });
+    expect(result.err.name).toBe('ApiError');
+    expect((result.err as unknown as { statusCode: number }).statusCode).toBe(404);
+  });
+
+  it('fully redacts a custom property whose key name is a secret', () => {
+    class AuthError extends Error {
+      token: string;
+      constructor(message: string, token: string) {
+        super(message);
+        this.token = token;
+      }
+    }
+    const err = new AuthError('unauthorized', 'raw-secret-value');
+    const result = redact({ err });
+    expect((result.err as unknown as { token: string }).token).toBe('[REDACTED]');
+  });
+});
+
+describe('binary and collection types', () => {
+  it('passes Buffer through unchanged rather than exploding it into byte keys', () => {
+    const buf = Buffer.from('hello world');
+    const result = redact({ payload: buf });
+    expect(Buffer.isBuffer(result.payload)).toBe(true);
+    expect(result.payload.toString()).toBe('hello world');
+  });
+
+  it('passes Uint8Array through unchanged', () => {
+    const arr = new Uint8Array([1, 2, 3]);
+    const result = redact({ data: arr });
+    expect(result.data).toBeInstanceOf(Uint8Array);
+    expect(Array.from(result.data as Uint8Array)).toEqual([1, 2, 3]);
+  });
+
+  it('passes Map and Set through unchanged instead of turning them into {}', () => {
+    const m = new Map([['a', 1]]);
+    const s = new Set([1, 2]);
+    const result = redact({ m, s });
+    expect(result.m).toBeInstanceOf(Map);
+    expect(result.m.get('a')).toBe(1);
+    expect(result.s).toBeInstanceOf(Set);
+    expect(result.s.has(2)).toBe(true);
+  });
+});

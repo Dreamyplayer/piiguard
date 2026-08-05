@@ -1,6 +1,6 @@
 {
   "name": "piiguard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zero-config PII redaction middleware for Winston and Pino — auto-detects emails, card numbers, SSNs, phone numbers, tokens and secrets by pattern/shape, no manual field lists required.",
   "keywords": [
     "pii",
@@ -28,6 +28,7 @@
   "files": [
     "dist",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "sideEffects": false,
@@ -67,7 +68,7 @@
     "type": "git",
     "url": "git+https://github.com/Dreamyplayer/piiguard.git"
   },
-  "author": "Dreamy Player",
+  "author": "Bungamatla Sai Kumar",
   "publishConfig": {
     "access": "public"
   }
