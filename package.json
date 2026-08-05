@@ -1,0 +1,74 @@
+{
+  "name": "piiguard",
+  "version": "0.1.0",
+  "description": "Zero-config PII redaction middleware for Winston and Pino — auto-detects emails, card numbers, SSNs, phone numbers, tokens and secrets by pattern/shape, no manual field lists required.",
+  "keywords": [
+    "pii",
+    "redaction",
+    "logging",
+    "winston",
+    "pino",
+    "security",
+    "compliance",
+    "gdpr",
+    "middleware"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup && tsc --emitDeclarationOnly --declaration --declarationMap --outDir dist",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "pino": "^10.3.1",
+    "typescript": "^7.0.2",
+    "tsup": "^8.5.1",
+    "vitest": "^4.1.10",
+    "winston": "^3.19.0"
+  },
+  "peerDependencies": {
+    "pino": ">=8.0.0",
+    "winston": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pino": {
+      "optional": true
+    },
+    "winston": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dreamyplayer/piiguard.git"
+  },
+  "author": "Dreamy Player",
+  "publishConfig": {
+    "access": "public"
+  }
+}
