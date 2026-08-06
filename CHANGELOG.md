@@ -6,6 +6,19 @@ Fixes found by testing the actual published tarball as a real consumer
 (installing it into a separate project via `npm install`), not just
 running the in-repo test suite:
 
+- **`wrap()` types were wrong for the Winston branch, causing a real
+  TS error** (`Argument of type 'typeof winston' is not assignable to
+  parameter of type 'Format'` / `Property 'transform' is missing`).
+  `wrap<T>()` used a single generic signature that returned the same
+  type as its input — correct for Pino (wrapped logger back), wrong for
+  Winston (returns a `Format` object, not the winston module). Fixed
+  with proper overloads: one for `adapter: 'pino'` returning `T`, one
+  for `adapter: 'winston'` returning `WinstonFormat`. Also had to relax
+  the internal `PinoLike`/`WinstonLike` duck types away from
+  index-signature-based types (`Record<string, unknown>`), which fail as
+  *generic constraints* against real Pino/Winston class instances even
+  though they succeed for plain variable assignment — a easy-to-miss TS
+  quirk.
 - **Error objects were silently redacted to `{}`.** `message` and `stack`
   are non-enumerable own properties on a plain `Error`, so the object
   walker skipped them entirely — PII embedded in an error message (e.g.
@@ -33,3 +46,4 @@ running the in-repo test suite:
 ## 0.1.0
 
 Initial release.
+
