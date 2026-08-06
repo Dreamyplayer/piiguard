@@ -77,8 +77,8 @@ describe('nested structures', () => {
     });
     expect(result.user.email).toContain('***');
     expect(result.user.profile.phone).toContain('***');
-    expect(result.logs[0].password).toBe('[REDACTED]');
-    expect(result.logs[1].note).toBe('clean');
+    expect(result.logs[0]?.password).toBe('[REDACTED]');
+    expect(result.logs[1]?.note).toBe('clean');
   });
 
   it('respects maxDepth', () => {

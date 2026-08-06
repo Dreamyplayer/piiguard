@@ -1,9 +1,13 @@
+import type { PinoLike } from './adapters/pino.js';
 import { wrapPino } from './adapters/pino.js';
+import type { WinstonFormat, WinstonLike } from './adapters/winston.js';
 import { piiguardWinstonFormat } from './adapters/winston.js';
 import { detect } from './core/detect.js';
 import type { DetectOptions, PiiGuardOptions } from './types.js';
 import { DEFAULT_OPTIONS } from './types.js';
 
+export type { PinoLike } from './adapters/pino.js';
+export type { WinstonFormat, WinstonInfo, WinstonLike } from './adapters/winston.js';
 export { detect } from './core/detect.js';
 export { PATTERNS, SENSITIVE_KEY_NAMES } from './patterns.js';
 export type { DetectOptions, MaskStrategy, PatternName, PiiGuardOptions } from './types.js';
@@ -23,6 +27,13 @@ function normalizeOptions(options: PiiGuardOptions): DetectOptions {
  * and secrets before it's written. `adapter` is required (not
  * auto-detected) — mis-identifying the logger type is a silent-failure
  * risk that could let PII through uncaught.
+ *
+ * The Pino and Winston overloads return different shapes on purpose:
+ * Pino's `wrap()` gives you back a logger with the same shape you passed
+ * in (same methods, redacting). Winston loggers aren't re-wrappable that
+ * way, so the Winston overload instead returns a `Format` object meant to
+ * be passed into `winston.format.combine(...)` — passing the `winston`
+ * module itself, not a logger instance.
  *
  * @example
  * // Pino
@@ -44,15 +55,17 @@ function normalizeOptions(options: PiiGuardOptions): DetectOptions {
  *   transports: [new winston.transports.Console()],
  * });
  */
-export function wrap<T>(loggerOrWinston: T, options: PiiGuardOptions): T {
+export function wrap<T extends PinoLike>(logger: T, options: PiiGuardOptions & { adapter: 'pino' }): T;
+export function wrap(winstonModule: WinstonLike, options: PiiGuardOptions & { adapter: 'winston' }): WinstonFormat;
+export function wrap(loggerOrWinston: PinoLike | WinstonLike, options: PiiGuardOptions): PinoLike | WinstonFormat {
   const detectOptions = normalizeOptions(options);
 
   if (options.adapter === 'pino') {
-    return wrapPino(loggerOrWinston as never, detectOptions) as T;
+    return wrapPino(loggerOrWinston as PinoLike, detectOptions);
   }
 
   if (options.adapter === 'winston') {
-    return piiguardWinstonFormat(loggerOrWinston as never, detectOptions) as T;
+    return piiguardWinstonFormat(loggerOrWinston as WinstonLike, detectOptions);
   }
 
   throw new Error(

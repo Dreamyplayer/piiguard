@@ -5,8 +5,21 @@ const LOG_METHODS = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'] as cons
 
 /** Minimal structural type for a Pino instance — avoids a hard dependency
  * on the `pino` package's types so this file compiles even if the caller
- * doesn't have pino installed (it's an optional peer dependency). */
-type PinoLike = Record<string, unknown>;
+ * doesn't have pino installed (it's an optional peer dependency).
+ *
+ * Deliberately NOT `Record<string, unknown>`: an indexed type works fine
+ * for a plain variable assignment, but fails as a generic constraint
+ * (`T extends ...`) against real class instances that don't declare an
+ * explicit string index signature — which Pino's own Logger type doesn't.
+ * A plain method-shaped interface avoids that pitfall. */
+export interface PinoLike {
+  info: (...args: unknown[]) => unknown;
+  error: (...args: unknown[]) => unknown;
+  warn: (...args: unknown[]) => unknown;
+  debug: (...args: unknown[]) => unknown;
+  trace: (...args: unknown[]) => unknown;
+  fatal: (...args: unknown[]) => unknown;
+}
 
 /**
  * Wraps a Pino logger's log methods (`info`, `error`, etc.) so every call
@@ -30,7 +43,7 @@ export function wrapPino<T extends PinoLike>(logger: T, options: DetectOptions):
     if (typeof original !== 'function') continue;
 
     wrapped[method] = (...args: unknown[]) => {
-      const redactedArgs = args.map(arg => detect(arg, options));
+      const redactedArgs = args.map((arg) => detect(arg, options));
       return (original as (...a: unknown[]) => unknown).apply(logger, redactedArgs);
     };
   }
